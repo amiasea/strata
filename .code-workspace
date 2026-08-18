@@ -1,0 +1,13 @@
+{
+  "folders": [
+    {
+      "path": "."
+    }
+  ],
+  "settings": {
+    "terminal.integrated.env.windows": {
+      "TF_VAR_hosting_environment_id": "PROSPECTIVE_HOSTING_ENVIRONMENT_ID",
+      "TF_VAR_collective_environment_id": "PROSPECTIVE_COLLECTIVE_ENVIRONMENT_ID"
+    }
+  }
+}

@@ -1,0 +1,21 @@
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+.terraform.tfstate.lock.info
+crash.log
+crash.*.log
+
+# Local-only Terraform backend
+terraform/**/backend.tf
+
+# Terraform variable files
+*.tfvars
+*.tfvars.json
+
+# VS Code
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
