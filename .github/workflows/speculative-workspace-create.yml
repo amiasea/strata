@@ -7,10 +7,6 @@ on:
         description: "Pull request that owns the Speculative candidate."
         required: true
         type: string
-      branch:
-        description: "Pull request head branch."
-        required: true
-        type: string
       hosting_environment_id:
         description: "Assigned Speculative Hosting environment resource ID."
         required: true
@@ -22,6 +18,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: read
   id-token: write
 
 jobs:
@@ -30,6 +27,34 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Validate pull request
+        id: pull-request
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PULL_REQUEST_NUMBER: ${{ inputs.pull_request_number }}
+        run: |
+          response=$(gh api \
+            "repos/${GITHUB_REPOSITORY}/pulls/${PULL_REQUEST_NUMBER}")
+
+          base_branch=$(echo "$response" | jq -r '.base.ref')
+          head_branch=$(echo "$response" | jq -r '.head.ref')
+          state=$(echo "$response" | jq -r '.state')
+
+          if [ "$state" != "open" ]; then
+            echo "Pull request #${PULL_REQUEST_NUMBER} is not open."
+            exit 1
+          fi
+
+          if [ "$base_branch" != "development" ]; then
+            echo "Pull request #${PULL_REQUEST_NUMBER} targets '${base_branch}', expected 'development'."
+            exit 1
+          fi
+
+          echo "Pull request #${PULL_REQUEST_NUMBER} targets development."
+          echo "Head branch: ${head_branch}"
+
+          echo "head_branch=${head_branch}" >> "$GITHUB_OUTPUT"
+
       - name: Authenticate to Azure
         uses: azure/login@v2
         with:
@@ -58,7 +83,7 @@ jobs:
           TFE_ORGANIZATION: amiasea
           TFE_PROJECT_ID: ${{ vars.TFE_PROMOTION_PROJECT_ID }}
           PULL_REQUEST_NUMBER: ${{ inputs.pull_request_number }}
-          BRANCH: ${{ inputs.branch }}
+          BRANCH: ${{ steps.pull-request.outputs.head_branch }}
         run: |
           workspace_name="speculative-pr-${PULL_REQUEST_NUMBER}"
 
@@ -159,7 +184,7 @@ jobs:
         env:
           TFE_PROJECT_ID: ${{ vars.TFE_STRATA_PROJECT_ID }}
           PULL_REQUEST_NUMBER: ${{ inputs.pull_request_number }}
-          BRANCH: ${{ inputs.branch }}
+          BRANCH: ${{ steps.pull-request.outputs.head_branch }}
           HOSTING_ENVIRONMENT_ID: ${{ inputs.hosting_environment_id }}
           COLLECTIVE_ENVIRONMENT_ID: ${{ inputs.collective_environment_id }}
           WORKSPACE_ID: ${{ steps.workspace.outputs.workspace_id }}
