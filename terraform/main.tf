@@ -1,11 +1,15 @@
 module "hosting" {
     source  = "./hosting"
 
-    environment_id = var.hosting_environment_id
+    azure_resource_group_name = var.azure_speculative_resource_group_name
+
+    providers = {
+      azurerm = azurerm.speculative
+    }
 }
 
-module "collective" {
-    source  = "./collective"
+# module "collective" {
+#     source  = "./collective"
 
-    environment_id = var.collective_environment_id
-}
+#     environment_id = var.collective_environment_id
+# }

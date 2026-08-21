@@ -1,7 +1,15 @@
-variable "hosting_environment_id" {
-  type = string
+variable "azure_environment" {
+  description = "Azure provider context published by the Landing Zone."
+
+  type = object({
+    context = string
+
+    landing_zones = object({
+      speculative = string
+    })
+  })
 }
 
-variable "collective_environment_id" {
+variable "azure_speculative_resource_group_name" {
   type = string
 }

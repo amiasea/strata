@@ -35,7 +35,7 @@ jobs:
         with:
           client-id: ${{ vars.AZURE_CLIENT_ID }}
           tenant-id: ${{ vars.AZURE_TENANT_ID }}
-          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+          subscription-id: ${{ vars.AZURE_INSTITUTIVE_SUBSCRIPTION_ID }}
 
       - name: Read TFE token from Sovereign Key Vault
         id: secrets
@@ -56,6 +56,7 @@ jobs:
         env:
           TFE_TOKEN: ${{ steps.secrets.outputs.TFE_TOKEN }}
           TFE_ORGANIZATION: amiasea
+          TFE_PROJECT_ID: ${{ vars.TFE_PROMOTION_PROJECT_ID }}
           PULL_REQUEST_NUMBER: ${{ inputs.pull_request_number }}
           BRANCH: ${{ inputs.branch }}
         run: |
@@ -64,6 +65,7 @@ jobs:
           jq -n \
             --arg name "$workspace_name" \
             --arg branch "$BRANCH" \
+            --arg project_id "$TFE_PROJECT_ID" \
             '{
               data: {
                 type: "workspaces",
@@ -75,6 +77,14 @@ jobs:
                     identifier: "amiasea/strata",
                     branch: $branch,
                     "ingress-submodules": false
+                  }
+                },
+                relationships: {
+                  project: {
+                    data: {
+                      type: "projects",
+                      id: $project_id
+                    }
                   }
                 }
               }
@@ -147,6 +157,7 @@ jobs:
 
       - name: Report workspace
         env:
+          TFE_PROJECT_ID: ${{ vars.TFE_STRATA_PROJECT_ID }}
           PULL_REQUEST_NUMBER: ${{ inputs.pull_request_number }}
           BRANCH: ${{ inputs.branch }}
           HOSTING_ENVIRONMENT_ID: ${{ inputs.hosting_environment_id }}
@@ -154,6 +165,7 @@ jobs:
           WORKSPACE_ID: ${{ steps.workspace.outputs.workspace_id }}
         run: |
           echo "Repository: amiasea/strata"
+          echo "Project ID: ${TFE_PROJECT_ID}"
           echo "Pull request: #${PULL_REQUEST_NUMBER}"
           echo "Branch: ${BRANCH}"
           echo "Hosting environment: ${HOSTING_ENVIRONMENT_ID}"
