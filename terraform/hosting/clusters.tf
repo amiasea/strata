@@ -17,4 +17,5 @@ resource "azurerm_kubernetes_cluster" "atlas" {
   identity {
     type = "SystemAssigned"
   }
+  
 }
